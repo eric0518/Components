@@ -20,11 +20,12 @@ public slots:
 
     bool createTable(QString tableName, QStringList fieldNames);
     bool dropTable(QString tableName);
-    bool insertRecord(QString tableName, QStringList record, int fieldCount);
+    bool insertRecord(QString tableName, QStringList fieldNames, QStringList fieldValues);
     bool deleteRecord(QString tableName, QString conditions = "");
     bool updateRecord(QString tableName, QMap<QString, QString> contents, QString conditions = "");
     qlonglong queryCount(QString tableName);
     QVariant querySelect(QString tableName, QString conditions = "");
+    QVariant queryPage(QString tableName, int pageIndex, int rowCountPerPage);
 
     QVariant searchQuery(QString tableName, QString searchText);
 
@@ -35,13 +36,15 @@ private:
     QString makeCreateTableSQL(QString tableName, QStringList fieldNames);
     QString makeDropTableSQL(QString tableName);
 
-    QString makeInsertSQL(QString tableName, int fieldCount);
+    QString makeInsertSQL(QString tableName, QStringList fieldNames, QStringList fieldValues);
     QString makeDeleteSQL(QString tableName, QString conditions = "");
 
     QString makeCountSQL(QString tableName);
     QString makeSelectSQL(QString tableName, QString conditions = "");
 
     QString makeUpdateSQL(QString tableName, QMap<QString, QString> contents, QString conditions);
+
+    QString makePageQuerySQL(QString tableName, int pageIndex, int rowCountPerPage);
 
 private:
     QSqlDatabase m_sqlDatabase;

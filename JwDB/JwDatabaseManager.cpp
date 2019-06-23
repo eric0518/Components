@@ -29,16 +29,16 @@ qlonglong JwDatabaseManager::queryCount(QString tableName)
     return result.toList().at(0).toMap().values().at(0).toInt();
 }
 
-//QVariant JwDatabaseManager::selectAllQuery(QString tableName)
-//{
-//    QString sql = makeSelectSQL(tableName);
-//    QVariant result = exec(sql);
-//    return result;
-//}
-
 QVariant JwDatabaseManager::querySelect(QString tableName, QString conditions)
 {
     QString sql = makeSelectSQL(tableName, conditions);
+    QVariant result = exec(sql);
+    return result;
+}
+
+QVariant JwDatabaseManager::queryPage(QString tableName, int pageIndex, int rowCountPerPage)
+{
+    QString sql = makePageQuerySQL(tableName, pageIndex, rowCountPerPage);
     QVariant result = exec(sql);
     return result;
 }
@@ -66,6 +66,7 @@ void JwDatabaseManager::closeDatabase()
 bool JwDatabaseManager::createTable(QString tableName, QStringList fieldNames)
 {
     QString createSql = makeCreateTableSQL(tableName, fieldNames);
+    qDebug() << "createSql = " << createSql;
 
     m_sqlQuery.prepare(createSql);
     if(!m_sqlQuery.exec())
@@ -90,20 +91,20 @@ bool JwDatabaseManager::dropTable(QString tableName)
     return true;
 }
 
-bool JwDatabaseManager::insertRecord(QString tableName, QStringList record, int fieldCount)
+bool JwDatabaseManager::insertRecord(QString tableName, QStringList fieldNames, QStringList fieldValues)
 {
-    if (record.size() != fieldCount)
-    {
-        qDebug() << "Failed Insert : parameter error";
-        return false;
-    }
+    int fieldCount = fieldValues.size();
 
-    QString insertSql = makeInsertSQL(tableName, fieldCount);
+
+    QString insertSql = makeInsertSQL(tableName, fieldNames, fieldValues);
+    qDebug() << "insertSql = " << insertSql;
     m_sqlQuery.prepare(insertSql);
 
     for (int i=0; i<fieldCount; i++)
     {
-        m_sqlQuery.addBindValue(QStringList() << record.at(i));
+        QString text = fieldValues.at(i);
+        m_sqlQuery.addBindValue(QStringList() << text);
+        qDebug() << "record.at(i) = " << fieldValues.at(i);
     }
 
     if(!m_sqlQuery.execBatch())
@@ -210,7 +211,7 @@ QString JwDatabaseManager::makeCreateTableSQL(QString tableName, QStringList fie
     sql += "(";
     for (int i=0; i<fieldNames.size(); i++)
     {
-        sql += QString("%1 TEXT%2").arg(fieldNames.at(i)).arg((i<(fieldNames.size() - 1)) ? ", " : "");
+        sql += QString("%1%2").arg(fieldNames.at(i)).arg((i<(fieldNames.size() - 1)) ? ", " : "");
     }
     sql += ");";
 
@@ -223,13 +224,28 @@ QString JwDatabaseManager::makeDropTableSQL(QString tableName)
     return sql;
 }
 
-QString JwDatabaseManager::makeInsertSQL(QString tableName, int fieldCount)
+QString JwDatabaseManager::makeInsertSQL(QString tableName, QStringList fieldNames, QStringList fieldValues)
 {
     QString sql = QString("INSERT INTO %1 ").arg(tableName);
-    sql += "VALUES(";
-    for (int i=0; i<fieldCount; i++)
+
+    sql += "(";
+    for (int i=0; i<fieldNames.size(); i++)
     {
-        sql += QString("?%1").arg((i < (fieldCount - 1)) ? ", " : "");
+        QString fieldName = fieldNames.at(i);
+        if (fieldName.contains("PRIMARY") || fieldName.contains("AUTOINCREMENT"))
+        {
+            continue;
+        }
+
+        sql += QString("%1%2").arg(fieldName.split(" ").at(0))
+                              .arg((i<fieldNames.size() - 1) ? ", " : "");
+    }
+    sql += ")";
+
+    sql += " VALUES(";
+    for (int i=0; i<fieldValues.size(); i++)
+    {
+        sql += QString("?%1").arg((i < (fieldValues.size() - 1)) ? ", " : "");
     }
     sql += ");";
 
@@ -265,7 +281,7 @@ QString JwDatabaseManager::makeSelectSQL(QString tableName, QString conditions)
     else
     {
         sql = QString("SELECT * FROM %1 WHERE %2;").arg(tableName)
-                                                     .arg(conditions);
+                                                   .arg(conditions);
     }
 
     return sql;
@@ -277,8 +293,8 @@ QString JwDatabaseManager::makeUpdateSQL(QString tableName, QMap<QString, QStrin
     for (int i=0; i<contents.size(); i++)
     {
         sql += QString("%1 = '%2'%3").arg(contents.keys().at(i))
-                                      .arg(contents.value(contents.keys().at(i)))
-                                      .arg((i < contents.size() - 1) ? ", " : "");
+                                     .arg(contents.value(contents.keys().at(i)))
+                                     .arg((i < contents.size() - 1) ? ", " : "");
     }
 
     if (conditions.isEmpty())
@@ -291,4 +307,11 @@ QString JwDatabaseManager::makeUpdateSQL(QString tableName, QMap<QString, QStrin
     }
 
     return sql;
+}
+
+QString JwDatabaseManager::makePageQuerySQL(QString tableName, int pageIndex, int rowCountPerPage)
+{
+    return  QString("SELECT * FROM %1 LIMIT %2 OFFSET %3;").arg(tableName)
+                                                           .arg(rowCountPerPage)
+                                                           .arg(pageIndex * rowCountPerPage);
 }

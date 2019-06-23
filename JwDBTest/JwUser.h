@@ -19,6 +19,12 @@ public:
     QString email() const;
     void setEmail(const QString &email);
 
+    QString createdTime() const;
+    void setCreatedTime(const QString &createdTime);
+
+    quint64 id() const;
+    void setId(const quint64 &id);
+
     QString className();
     QStringList fieldNames();
     QStringList fieldValues();
@@ -29,11 +35,11 @@ private:
 private:
     QString m_className;
 
+    quint64 m_id;
     QString m_username;
     quint32 m_age;
     QString m_email;
-
-    int m_index;
+    QString m_createdTime;
 };
 
 #endif // JWUSER_H

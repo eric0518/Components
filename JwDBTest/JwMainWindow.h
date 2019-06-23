@@ -29,9 +29,19 @@ private slots:
     void dropTableButtonClicked();
     void closeDBButtonClicked();
 
+    void topPageButtonClicked();
+    void previousPageButtonClicked();
+    void nextPageButtonClicked();
+    void bottomPageButtonClicked();
+    void updtePageNumber();
+
 private:
     Ui::JwMainWindow *ui;
     JwDatabaseManager *m_databaseManager;
+
+    int m_rowCountPerPage;
+    int m_pageIndex;
+    int m_pageCount;
 
     JwUser *m_user;
 };
