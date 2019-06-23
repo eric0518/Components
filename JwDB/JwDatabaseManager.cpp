@@ -12,15 +12,6 @@ JwDatabaseManager::JwDatabaseManager(QObject *parent) : QObject(parent)
 }
 
 // public slots
-QVariant JwDatabaseManager::searchQuery(QString tableName, QString searchText)
-{
-    QString sql = QString("SELECT * FROM %1 WHERE body LIKE \'%%2%\' OR title LIKE \'%%2%\'").arg(tableName).arg(searchText);
-    qDebug() << "sql = " << sql;
-
-    QVariant result = exec(sql);
-    return result;
-}
-
 qlonglong JwDatabaseManager::queryCount(QString tableName)
 {
     QString sql = makeCountSQL(tableName);

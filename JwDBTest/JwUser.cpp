@@ -62,7 +62,7 @@ void JwUser::init()
 {
     m_className = "JwUser";
 
-    m_username = "Bill Gates";
+    m_username = "比尔盖茨";
     m_age = 55;
     m_email = "Gates.Bill@hotmail.com";
     m_createdTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");

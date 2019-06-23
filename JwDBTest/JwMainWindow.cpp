@@ -1,4 +1,5 @@
 #include "JwMainWindow.h"
+#include "JwMainWindow.h"
 #include "ui_JwMainWindow.h"
 
 #include <QDebug>
@@ -115,7 +116,9 @@ void JwMainWindow::previousPageButtonClicked()
 {
     m_pageIndex --;
     m_pageIndex = qBound(0, m_pageIndex, m_pageCount - 1);
-    qDebug() << "Page " << m_pageIndex + 1 << ":" << m_databaseManager->queryPage(m_user->className(), m_pageIndex, m_rowCountPerPage);
+    QVariant results =  m_databaseManager->queryPage(m_user->className(), m_pageIndex, m_rowCountPerPage);
+    QList<JwUser *> users = parseUsers(results);
+    print(users);
 
     updtePageNumber();
 }
@@ -146,4 +149,35 @@ void JwMainWindow::updtePageNumber()
                                                     .arg(m_pageCount);
 
     ui->pageNumberLabel->setText(pageNumberText);
+}
+
+QList<JwUser *> JwMainWindow::parseUsers(QVariant data)
+{
+    QList<JwUser *> users;
+    QVariantList dataList = data.toList();
+    for (int i=0; i<dataList.size(); i++)
+    {
+        JwUser *user = new JwUser();
+        QVariantMap map = dataList.at(i).toMap();
+        user->setUsername(map.value("username").toString());
+        user->setAge(map.value("age").toInt());
+        user->setEmail(map.value("email").toString());
+        user->setCreatedTime(map.value("createdtime").toString());
+
+        users.append(user);
+    }
+
+    return users;
+}
+
+void JwMainWindow::print(QList<JwUser *> users)
+{
+    for (int i=0; i<users.size(); i++)
+    {
+        qDebug() << "-----------------------------------";
+        qDebug() << "username : " << users.at(i)->username();
+        qDebug() << "age : " << users.at(i)->age();
+        qDebug() << "email : " << users.at(i)->email();
+        qDebug() << "createdTime : " << users.at(i)->createdTime();
+    }
 }

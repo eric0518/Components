@@ -35,6 +35,11 @@ private slots:
     void bottomPageButtonClicked();
     void updtePageNumber();
 
+
+private:
+    QList<JwUser *> parseUsers(QVariant data);
+    void print(QList<JwUser *>);
+
 private:
     Ui::JwMainWindow *ui;
     JwDatabaseManager *m_databaseManager;
